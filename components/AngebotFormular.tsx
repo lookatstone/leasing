@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { z } from "zod";
+import { Loader2, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -295,6 +296,10 @@ export function AngebotFormular({
   );
   const [fehler, setFehler] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  const [urlLadend, setUrlLadend] = useState(false);
+  const [urlStatus, setUrlStatus] = useState<
+    { typ: "erfolg"; felder: number } | { typ: "fehler"; meldung: string } | null
+  >(null);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -338,10 +343,115 @@ export function AngebotFormular({
     onSpeichern(formStateZuAngebot(form, angebot));
   }
 
+  async function ladeAusUrl() {
+    const url = form.originalUrl.trim();
+    if (!url || !url.startsWith("http")) {
+      setUrlStatus({ typ: "fehler", meldung: "Bitte zuerst eine gültige URL eingeben." });
+      return;
+    }
+    setUrlLadend(true);
+    setUrlStatus(null);
+    try {
+      const res = await fetch("/api/angebot-aus-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.fehler) {
+        setUrlStatus({ typ: "fehler", meldung: json.fehler ?? "Unbekannter Fehler" });
+        return;
+      }
+      const e = json.angebot;
+      let felder = 0;
+      const patch: Partial<FormState> = {};
+      const setFeld = <K extends keyof FormState>(k: K, v: FormState[K] | undefined) => {
+        if (v !== undefined && v !== "" && v !== null) { patch[k] = v; felder++; }
+      };
+      setFeld("titel", e.titel || undefined);
+      setFeld("anbieter", e.anbieter || undefined);
+      setFeld("portal", e.portal || undefined);
+      setFeld("marke", e.fahrzeug?.marke || undefined);
+      setFeld("modell", e.fahrzeug?.modell || undefined);
+      setFeld("variante", e.fahrzeug?.variante);
+      if (e.fahrzeug?.neuOderGebraucht) { patch.neuOderGebraucht = e.fahrzeug.neuOderGebraucht; felder++; }
+      setFeld("erstzulassung", e.fahrzeug?.erstzulassung);
+      if (e.fahrzeug?.kilometerstand) setFeld("kilometerstand", String(e.fahrzeug.kilometerstand));
+      if (e.fahrzeug?.batteriekapazitaetKwh) setFeld("batteriekapazitaetKwh", String(e.fahrzeug.batteriekapazitaetKwh));
+      if (e.fahrzeug?.leistungKw) setFeld("leistungKw", String(e.fahrzeug.leistungKw));
+      if (e.fahrzeug?.wltpReichweiteKm) setFeld("wltpReichweiteKm", String(e.fahrzeug.wltpReichweiteKm));
+      if (e.fahrzeug?.anhaengerkupplung) { patch.anhaengerkupplung = e.fahrzeug.anhaengerkupplung; felder++; }
+      if (e.fahrzeug?.sonderausstattung?.length) setFeld("sonderausstattung", e.fahrzeug.sonderausstattung.join(", "));
+      setFeld("farbe", e.fahrzeug?.farbe);
+      if (e.konditionen?.monatsrate) setFeld("monatsrate", String(e.konditionen.monatsrate));
+      if (e.konditionen?.laufzeitMonate) setFeld("laufzeitMonate", String(e.konditionen.laufzeitMonate));
+      if (e.konditionen?.kmProJahr) setFeld("kmProJahr", String(e.konditionen.kmProJahr));
+      if (e.konditionen?.sonderzahlung !== undefined) setFeld("sonderzahlung", String(e.konditionen.sonderzahlung));
+      if (e.konditionen?.ueberfuehrungskosten) setFeld("ueberfuehrungskosten", String(e.konditionen.ueberfuehrungskosten));
+      if (e.konditionen?.zulassungskosten) setFeld("zulassungskosten", String(e.konditionen.zulassungskosten));
+      if (e.konditionen?.foerderungVomAnbieterEinkalkuliert) { patch.foerderungVomAnbieterEinkalkuliert = e.konditionen.foerderungVomAnbieterEinkalkuliert; felder++; }
+      if (e.konditionen?.foerderungHoeheEuro) setFeld("foerderungHoeheEuro", String(e.konditionen.foerderungHoeheEuro));
+      if (e.konditionen?.gapEnthalten) { patch.gapEnthalten = e.konditionen.gapEnthalten; felder++; }
+      if (e.konditionen?.verfuegbarkeit) { patch.verfuegbarkeit = e.konditionen.verfuegbarkeit; felder++; }
+      setFeld("spezielleBedingungen", e.konditionen?.spezielleBedingungen);
+      setFeld("notizen", e.notizen);
+      setForm((prev) => ({ ...prev, ...patch }));
+      setUrlStatus({ typ: "erfolg", felder });
+    } catch {
+      setUrlStatus({ typ: "fehler", meldung: "Netzwerkfehler beim Laden der URL." });
+    } finally {
+      setUrlLadend(false);
+    }
+  }
+
   const f = (pfad: string) => fehler[pfad];
 
   return (
     <form onSubmit={handleSubmit} className="space-y-10">
+      {/* ── 0. URL-Import ────────────────────────────────────────────────── */}
+      <section className="rounded-lg border bg-muted/40 p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-primary" />
+          <p className="text-sm font-semibold">Angebot aus Link importieren</p>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          URL eingeben und Claude liest die verfügbaren Daten automatisch aus.
+          Fehlende oder unsichere Werte kannst du danach manuell ergänzen.
+        </p>
+        <div className="flex gap-2">
+          <Input
+            value={form.originalUrl}
+            onChange={(e) => set("originalUrl", e.target.value)}
+            placeholder="https://www.leasingmarkt.de/leasing/pkw/…"
+            className="flex-1 bg-background"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={ladeAusUrl}
+            disabled={urlLadend || !form.originalUrl.startsWith("http")}
+          >
+            {urlLadend ? (
+              <><Loader2 className="h-4 w-4 animate-spin" />Lädt…</>
+            ) : (
+              <><Sparkles className="h-4 w-4" />Importieren</>
+            )}
+          </Button>
+        </div>
+        {urlStatus?.typ === "erfolg" && (
+          <div className="flex items-center gap-2 text-sm text-emerald-700">
+            <CheckCircle2 className="h-4 w-4" />
+            {urlStatus.felder} Felder automatisch ausgefüllt – bitte prüfen und ergänzen.
+          </div>
+        )}
+        {urlStatus?.typ === "fehler" && (
+          <div className="flex items-center gap-2 text-sm text-destructive">
+            <AlertCircle className="h-4 w-4" />
+            {urlStatus.meldung}
+          </div>
+        )}
+      </section>
+
       {/* ── 1. Allgemein ─────────────────────────────────────────────────── */}
       <section className="space-y-5">
         <h3 className="text-base font-semibold tracking-tight">Allgemein</h3>
@@ -369,18 +479,6 @@ export function AngebotFormular({
               value={form.portal}
               onChange={(e) => set("portal", e.target.value)}
               placeholder="z. B. Leasingmarkt.de"
-            />
-          </Feld>
-          <Feld
-            label="Original-URL"
-            fehler={f("originalUrl")}
-            hinweis="Link zum Originalangebot im Internet"
-          >
-            <Input
-              type="url"
-              value={form.originalUrl}
-              onChange={(e) => set("originalUrl", e.target.value)}
-              placeholder="https://..."
             />
           </Feld>
           <Feld label="Status" fehler={f("status")} required>
