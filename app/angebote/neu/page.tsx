@@ -21,7 +21,7 @@ function leeresKonditionen(): Angebot["konditionen"] {
   return {
     monatsrate: 0,
     laufzeitMonate: 36,
-    kmProJahr: 15000,
+    kmProJahr: 20000,
     sonderzahlung: 0,
     ueberfuehrungskosten: 0,
     zulassungskosten: 0,
@@ -33,6 +33,8 @@ function leeresKonditionen(): Angebot["konditionen"] {
 
 function leeresLaufendeKosten(): Angebot["laufendeKosten"] {
   return {
+    versicherungProJahr: 1000,
+    versicherungsannahmeText: "ca. 1.000 € / Jahr (Annahme, bitte prüfen)",
     kfzSteuerProJahr: 0,
   };
 }
