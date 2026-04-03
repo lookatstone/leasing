@@ -108,10 +108,10 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-right">
                     <p className="text-2xl font-bold text-emerald-700">
-                      {formatEuro(guenstStesErgebnis.effektiveMonatlicheGesamtkosten)}
+                      {formatEuro(guenstigstes.konditionen.monatsrate)}
                       <span className="text-sm font-normal text-muted-foreground">/Monat</span>
                     </p>
-                    <p className="text-xs text-muted-foreground">effektive Gesamtkosten</p>
+                    <p className="text-xs text-muted-foreground">Leasingrate</p>
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -238,7 +238,7 @@ function AngebotZeile({ angebot, ergebnis, baseline }: {
         </div>
         <div className="text-right">
           <p className="text-sm font-semibold">
-            {ergebnis ? formatEuro(ergebnis.effektiveMonatlicheGesamtkosten) + "/Mo." : formatEuro(angebot.konditionen.monatsrate) + "/Mo."}
+            {formatEuro(angebot.konditionen.monatsrate)}/Mo.
           </p>
           {ergebnis && <FitBadge bewertung={ergebnis.bewertung.gesamtbewertung} size="sm" />}
         </div>
