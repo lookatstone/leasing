@@ -143,20 +143,17 @@ function AngebotKarte({
           {/* Kosten */}
           <div className="flex items-end justify-between gap-2">
             <div>
-              <p className="text-xs text-muted-foreground">
-                Monatsrate laut Angebot
-              </p>
-              <p className="text-sm font-medium">
-                {formatEuro(angebot.konditionen.monatsrate)}/Monat
+              <p className="text-xs text-muted-foreground">Leasingrate</p>
+              <p className="text-2xl font-bold tabular-nums text-primary">
+                {formatEuro(angebot.konditionen.monatsrate)}
+                <span className="text-sm font-normal text-muted-foreground">/Mo.</span>
               </p>
             </div>
             {ergebnis && (
               <div className="text-right">
-                <p className="text-xs text-muted-foreground">
-                  Effektive Gesamtkosten
-                </p>
-                <p className="text-base font-bold text-primary">
-                  {formatEuro(ergebnis.effektiveMonatlicheGesamtkosten)}/Monat
+                <p className="text-xs text-muted-foreground">inkl. Betrieb</p>
+                <p className="text-sm tabular-nums text-muted-foreground">
+                  {formatEuro(ergebnis.effektiveMonatlicheGesamtkosten)}/Mo.
                 </p>
               </div>
             )}
