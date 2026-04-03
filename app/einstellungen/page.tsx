@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Save, RotateCcw, Info } from "lucide-react";
+import { Save, RotateCcw, Info, CheckCircle2, Database, HardDrive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAppData } from "@/hooks/useAppData";
 import { resetAufSeeds, generiereId } from "@/lib/storage";
+import { supabaseVerfuegbar } from "@/lib/supabase";
 import type { BaselineProfil } from "@/types";
 
 export default function EinstellungenPage() {
@@ -74,26 +75,54 @@ export default function EinstellungenPage() {
         <h2 className="text-lg font-semibold tracking-tight">Daten</h2>
         <Card>
           <CardContent className="p-5 space-y-4">
-            <div className="flex items-start justify-between gap-4">
+            {/* Speichermodus */}
+            <div className="flex items-center gap-3">
+              {supabaseVerfuegbar ? (
+                <div className="rounded-md bg-emerald-50 border border-emerald-200 p-2">
+                  <Database className="h-4 w-4 text-emerald-600" />
+                </div>
+              ) : (
+                <div className="rounded-md bg-amber-50 border border-amber-200 p-2">
+                  <HardDrive className="h-4 w-4 text-amber-600" />
+                </div>
+              )}
               <div>
                 <p className="font-medium text-sm">Gespeicherte Daten</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {data.angebote.length} Angebote · {data.vergleiche.length} Vergleiche
-                </p>
                 <p className="text-xs text-muted-foreground">
-                  Gespeichert im Browser-Speicher (localStorage)
+                  {data.angebote.length} Angebote · {data.vergleiche.length} Vergleiche
                 </p>
               </div>
             </div>
 
-            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 flex gap-2">
-              <Info className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-              <p className="text-xs text-amber-700">
-                Die Daten werden lokal im Browser gespeichert. Bei Löschen des
-                Browser-Caches gehen sie verloren. Für dauerhaftes Speichern
-                empfiehlt sich ein späteres Datenbankbackend (z. B. Supabase).
-              </p>
-            </div>
+            {/* Status-Badge */}
+            {supabaseVerfuegbar ? (
+              <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 flex gap-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-emerald-800">
+                    Supabase aktiv
+                  </p>
+                  <p className="text-xs text-emerald-700 mt-0.5">
+                    Daten werden in der Datenbank gespeichert und sind geräteübergreifend
+                    und für alle Personen mit Zugriff auf diese App sichtbar.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-md border border-amber-200 bg-amber-50 p-3 flex gap-2">
+                <Info className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-xs font-medium text-amber-800">
+                    Lokaler Browser-Speicher (localStorage)
+                  </p>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    Daten sind nur in diesem Browser gespeichert. Bei gelöschtem
+                    Cache gehen sie verloren. Für geteilten Zugriff Supabase-Keys
+                    in den Umgebungsvariablen hinterlegen.
+                  </p>
+                </div>
+              </div>
+            )}
 
             <Button
               variant="outline"
