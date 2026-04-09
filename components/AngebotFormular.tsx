@@ -86,6 +86,8 @@ interface FormState {
   gapEnthalten: Angebot["konditionen"]["gapEnthalten"];
   verfuegbarkeit: Angebot["konditionen"]["verfuegbarkeit"];
   spezielleBedingungen: string;
+  mehrkostenProKm: string;
+  minderkostenProKm: string;
   // Km-Staffelpreise
   kmStaffel20000: string;
   kmStaffel25000: string;
@@ -150,6 +152,8 @@ function angebotZuFormState(a: Angebot): FormState {
     gapEnthalten: a.konditionen.gapEnthalten,
     verfuegbarkeit: a.konditionen.verfuegbarkeit,
     spezielleBedingungen: a.konditionen.spezielleBedingungen ?? "",
+    mehrkostenProKm: a.konditionen.mehrkostenProKm !== undefined ? String(a.konditionen.mehrkostenProKm) : "",
+    minderkostenProKm: a.konditionen.minderkostenProKm !== undefined ? String(a.konditionen.minderkostenProKm) : "",
 
     kmStaffel20000: String(
       a.konditionen.kmStaffelRaten?.find((s) => s.kmProJahr === 20000)?.monatsrate ?? ""
@@ -238,6 +242,8 @@ function formStateZuAngebot(f: FormState, basis: Angebot): Angebot {
       gapEnthalten: f.gapEnthalten,
       verfuegbarkeit: f.verfuegbarkeit,
       spezielleBedingungen: f.spezielleBedingungen.trim() || undefined,
+      mehrkostenProKm: f.mehrkostenProKm ? zahl(f.mehrkostenProKm) : undefined,
+      minderkostenProKm: f.minderkostenProKm ? zahl(f.minderkostenProKm) : undefined,
       kmStaffelRaten: (() => {
         const staffel = [
           f.kmStaffel20000 ? { kmProJahr: 20000, monatsrate: zahlOder0(f.kmStaffel20000) } : null,
@@ -1013,6 +1019,36 @@ export function AngebotFormular({
               value={form.kmStaffel30000}
               onChange={(e) => set("kmStaffel30000", e.target.value)}
               placeholder="z. B. 429"
+            />
+          </Feld>
+        </div>
+
+        {/* Mehr-/Minderkilometer */}
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <Feld
+            label="Mehrkilometer-Satz (€/km)"
+            hinweis="Kosten pro km bei Überschreitung, z. B. 0,07"
+          >
+            <Input
+              type="number"
+              min={0}
+              step={0.01}
+              value={form.mehrkostenProKm}
+              onChange={(e) => set("mehrkostenProKm", e.target.value)}
+              placeholder="z. B. 0.07"
+            />
+          </Feld>
+          <Feld
+            label="Minderkilometer-Satz (€/km)"
+            hinweis="Gutschrift pro km bei Unterschreitung, z. B. 0,04"
+          >
+            <Input
+              type="number"
+              min={0}
+              step={0.01}
+              value={form.minderkostenProKm}
+              onChange={(e) => set("minderkostenProKm", e.target.value)}
+              placeholder="z. B. 0.04"
             />
           </Feld>
         </div>
