@@ -13,6 +13,7 @@ import {
   Star,
   XCircle,
   Archive,
+  Ban,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -239,6 +240,12 @@ export default function AngebotDetailPage() {
                     <span className="flex items-center gap-2">
                       <Archive className="h-3.5 w-3.5 text-gray-400" />
                       Archiviert
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="nicht_verfuegbar">
+                    <span className="flex items-center gap-2">
+                      <Ban className="h-3.5 w-3.5 text-red-500" />
+                      Nicht verfügbar
                     </span>
                   </SelectItem>
                 </SelectContent>

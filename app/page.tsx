@@ -136,7 +136,18 @@ export default function DashboardPage() {
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <BatterieBadge kwh={guenstigstes.fahrzeug.batteriekapazitaetKwh} baseline={baseline} />
                   <FitBadge bewertung={guenstStesErgebnis.bewertung.gesamtbewertung} erklaerung={guenstStesErgebnis.bewertung.erklaerung} size="sm" />
-                  <WarnListe warnungen={guenstStesErgebnis.warnungen} maxAnzeigen={3} />
+                  {(() => {
+                    const k = guenstigstes.konditionen;
+                    const brutto = guenstStesErgebnis.einmaligeKosten;
+                    const foerderung = k.foerderungVomAnbieterEinkalkuliert === "nicht_eingerechnet" && k.foerderungHoeheEuro ? k.foerderungHoeheEuro : 0;
+                    const netto = Math.max(0, brutto - foerderung);
+                    if (brutto === 0) return null;
+                    return (
+                      <span className="text-sm text-muted-foreground">
+                        Einmalig: <span className="font-medium text-foreground">{netto > 0 ? formatEuro(netto) : "–"}</span>
+                      </span>
+                    );
+                  })()}
                 </div>
               </CardContent>
             </Card>

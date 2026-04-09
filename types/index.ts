@@ -6,7 +6,7 @@ export type FoerderungStatus = "eingerechnet" | "nicht_eingerechnet" | "unklar";
 export type GapStatus = "enthalten" | "nicht_enthalten" | "unklar";
 export type FahrzeugZustand = "neu" | "gebraucht";
 export type AnhaengerkupplungStatus = "ja" | "nein" | "optional" | "unbekannt";
-export type AngebotStatus = "favorit" | "aktiv" | "verworfen" | "archiviert";
+export type AngebotStatus = "favorit" | "aktiv" | "verworfen" | "archiviert" | "nicht_verfuegbar";
 export type Verfuegbarkeit =
   | "sofort"
   | "kurz" // < 4 Wochen

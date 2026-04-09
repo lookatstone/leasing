@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Star, CheckCircle, XCircle, Archive } from "lucide-react";
+import { Star, CheckCircle, XCircle, Archive, Ban } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AngebotStatus } from "@/types";
 
@@ -26,6 +26,11 @@ const statusConfig: Record<
     label: "Archiviert",
     container: "bg-gray-50 text-gray-400 border-gray-200",
     icon: <Archive className="h-3 w-3 text-gray-400" />,
+  },
+  nicht_verfuegbar: {
+    label: "Nicht verfügbar",
+    container: "bg-red-50 text-red-600 border-red-200",
+    icon: <Ban className="h-3 w-3 text-red-500" />,
   },
 };
 

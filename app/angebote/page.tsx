@@ -185,10 +185,27 @@ function AngebotKarte({
             {(angebot.konditionen.kmProJahr / 1000).toFixed(0)}.000 km/Jahr
           </p>
 
-          {/* Warnungen */}
-          {ergebnis && ergebnis.warnungen.length > 0 && (
-            <WarnListe warnungen={ergebnis.warnungen} maxAnzeigen={2} />
-          )}
+          {/* Einmalkosten */}
+          {ergebnis && (() => {
+            const k = angebot.konditionen;
+            const brutto = ergebnis.einmaligeKosten;
+            const foerderung = k.foerderungVomAnbieterEinkalkuliert === "nicht_eingerechnet" && k.foerderungHoeheEuro ? k.foerderungHoeheEuro : 0;
+            const netto = Math.max(0, brutto - foerderung);
+            const teile: string[] = [];
+            if (k.sonderzahlung > 0) teile.push(`Sz. ${formatEuro(k.sonderzahlung)}`);
+            if (k.ueberfuehrungskosten > 0) teile.push(`Üf. ${formatEuro(k.ueberfuehrungskosten)}`);
+            if (k.zulassungskosten > 0) teile.push(`Zul. ${formatEuro(k.zulassungskosten)}`);
+            if (foerderung > 0) teile.push(`− Fö. ${formatEuro(foerderung)}`);
+            if (teile.length === 0) return null;
+            return (
+              <p className="text-xs text-muted-foreground">
+                <span className="font-medium text-foreground">
+                  Einmalig: {netto > 0 ? formatEuro(netto) : "–"}
+                </span>
+                {" · "}{teile.join(" + ").replace("+ −", "−")}
+              </p>
+            );
+          })()}
 
           {/* Externer Link */}
           {angebot.originalUrl && (
@@ -430,6 +447,7 @@ export default function AngebotListePage() {
               <SelectItem value="aktiv">Aktiv</SelectItem>
               <SelectItem value="verworfen">Verworfen</SelectItem>
               <SelectItem value="archiviert">Archiviert</SelectItem>
+              <SelectItem value="nicht_verfuegbar">Nicht verfügbar</SelectItem>
             </SelectContent>
           </Select>
 
