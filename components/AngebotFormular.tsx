@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { z } from "zod";
-import { Loader2, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, Sparkles, CheckCircle2, AlertCircle, Upload, X, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,6 +64,7 @@ interface FormState {
   marke: string;
   modell: string;
   variante: string;
+  fotoUrl: string;
   neuOderGebraucht: Angebot["fahrzeug"]["neuOderGebraucht"];
   erstzulassung: string;
   kilometerstand: string;
@@ -113,6 +114,7 @@ function angebotZuFormState(a: Angebot): FormState {
     marke: a.fahrzeug.marke,
     modell: a.fahrzeug.modell,
     variante: a.fahrzeug.variante ?? "",
+    fotoUrl: a.fahrzeug.fotoUrl ?? "",
     neuOderGebraucht: a.fahrzeug.neuOderGebraucht,
     erstzulassung: a.fahrzeug.erstzulassung ?? "",
     kilometerstand:
@@ -204,6 +206,7 @@ function formStateZuAngebot(f: FormState, basis: Angebot): Angebot {
       marke: f.marke.trim(),
       modell: f.modell.trim(),
       variante: f.variante.trim() || undefined,
+      fotoUrl: f.fotoUrl.trim() || undefined,
       neuOderGebraucht: f.neuOderGebraucht,
       erstzulassung: f.erstzulassung || undefined,
       kilometerstand: f.kilometerstand ? intOder0(f.kilometerstand) : undefined,
@@ -322,6 +325,22 @@ export function AngebotFormular({
   const [urlStatus, setUrlStatus] = useState<
     { typ: "erfolg"; felder: number } | { typ: "fehler"; meldung: string } | null
   >(null);
+  const fotoInputRef = useRef<HTMLInputElement>(null);
+
+  function handleFotoDatei(e: React.ChangeEvent<HTMLInputElement>) {
+    const datei = e.target.files?.[0];
+    if (!datei) return;
+    if (datei.size > 5 * 1024 * 1024) {
+      alert("Bild ist zu groß (max. 5 MB).");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result;
+      if (typeof result === "string") set("fotoUrl", result);
+    };
+    reader.readAsDataURL(datei);
+  }
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -691,6 +710,63 @@ export function AngebotFormular({
             placeholder="z. B. Wärmepumpe, Panoramadach, Matrix-LED"
           />
         </Feld>
+
+        {/* Fahrzeugfoto */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium">Fahrzeugfoto (optional)</p>
+          <input
+            ref={fotoInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFotoDatei}
+          />
+          {form.fotoUrl ? (
+            <div className="relative w-full overflow-hidden rounded-lg border">
+              <img
+                src={form.fotoUrl}
+                alt="Fahrzeugfoto"
+                className="h-48 w-full object-cover"
+              />
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                className="absolute right-2 top-2 h-7 w-7 p-0"
+                onClick={() => set("fotoUrl", "")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div
+              className="flex h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed text-muted-foreground transition-colors hover:border-primary hover:text-primary"
+              onClick={() => fotoInputRef.current?.click()}
+            >
+              <ImageIcon className="h-8 w-8" />
+              <span className="text-sm">Klicken zum Hochladen</span>
+              <span className="text-xs">JPG, PNG, WebP · max. 5 MB</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fotoInputRef.current?.click()}
+            >
+              <Upload className="mr-1.5 h-3.5 w-3.5" />
+              {form.fotoUrl ? "Bild ersetzen" : "Datei wählen"}
+            </Button>
+            <span className="text-xs text-muted-foreground">oder</span>
+            <Input
+              className="h-8 text-xs"
+              placeholder="Bild-URL einfügen …"
+              value={form.fotoUrl.startsWith("data:") ? "" : form.fotoUrl}
+              onChange={(e) => set("fotoUrl", e.target.value)}
+            />
+          </div>
+        </div>
       </section>
 
       <Separator />

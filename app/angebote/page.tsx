@@ -115,7 +115,16 @@ function AngebotKarte({
   const rate = getRateForKm(angebot, kmAuswahl);
   return (
     <Link href={`/angebote/${angebot.id}`}>
-      <Card className="h-full cursor-pointer transition-shadow hover:shadow-md">
+      <Card className="h-full cursor-pointer overflow-hidden transition-shadow hover:shadow-md">
+        {angebot.fahrzeug.fotoUrl && (
+          <div className="h-36 w-full overflow-hidden">
+            <img
+              src={angebot.fahrzeug.fotoUrl}
+              alt={angebot.titel}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
         <CardContent className="flex h-full flex-col gap-3 p-5">
           {/* Kopfzeile */}
           <div className="flex items-start justify-between gap-2">
