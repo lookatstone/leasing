@@ -216,6 +216,42 @@ export function KostenBreakdownCard({
           )}
         </div>
 
+        {/* Mehr-/Minderkilometer */}
+        {(k.mehrkostenProKm !== undefined || k.minderkostenProKm !== undefined) && (
+          <>
+            <Separator />
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Mehr- / Minderkilometer
+              </p>
+              {k.mehrkostenProKm !== undefined && (
+                <Zeile
+                  label="Mehrkilometer-Satz"
+                  wert={(k.mehrkostenProKm * 100).toFixed(1).replace(".", ",") + " ct/km"}
+                />
+              )}
+              {k.minderkostenProKm !== undefined && (
+                <Zeile
+                  label="Minderkilometer-Satz"
+                  wert={(k.minderkostenProKm * 100).toFixed(1).replace(".", ",") + " ct/km"}
+                  gruen
+                />
+              )}
+              {k.mehrkostenProKm !== undefined && (() => {
+                const extraKm = 5000 * (k.laufzeitMonate / 12);
+                const kosten = extraKm * k.mehrkostenProKm;
+                return (
+                  <Zeile
+                    label={`Einmalabrechnung bei +5 Tkm/Jahr (${k.laufzeitMonate} Mo.)`}
+                    wert={formatEuro(kosten) + " einmalig"}
+                    bold
+                  />
+                );
+              })()}
+            </div>
+          </>
+        )}
+
         <Separator />
 
         {/* Zusammenfassung */}
