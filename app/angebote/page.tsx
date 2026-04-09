@@ -28,6 +28,8 @@ import { FitBadge } from "@/components/FitBadge";
 import { WarnListe } from "@/components/WarnBadge";
 import { AngebotStatusBadge } from "@/components/AngebotStatusBadge";
 import { useAppData } from "@/hooks/useAppData";
+import { useKmAuswahl, getRateForKm } from "@/hooks/useKmAuswahl";
+import { KmAuswahlToggle } from "@/components/KmAuswahlToggle";
 import {
   berechneAlleVergleichsergebnisse,
 } from "@/lib/calculations";
@@ -48,6 +50,7 @@ import type {
   Vergleichsergebnis,
   BaselineProfil,
 } from "@/types";
+import type { KmTier } from "@/hooks/useKmAuswahl";
 
 // ─── Filter- und Sortier-Typen ────────────────────────────────────────────────
 
@@ -102,11 +105,14 @@ function AngebotKarte({
   angebot,
   ergebnis,
   baseline,
+  kmAuswahl,
 }: {
   angebot: Angebot;
   ergebnis?: Vergleichsergebnis;
   baseline?: BaselineProfil;
+  kmAuswahl: KmTier;
 }) {
+  const rate = getRateForKm(angebot, kmAuswahl);
   return (
     <Link href={`/angebote/${angebot.id}`}>
       <Card className="h-full cursor-pointer transition-shadow hover:shadow-md">
@@ -143,13 +149,17 @@ function AngebotKarte({
           {/* Kosten */}
           <div className="flex items-end justify-between gap-2">
             <div>
-              <p className="text-xs text-muted-foreground">Leasingrate</p>
-              <p className="text-2xl font-bold tabular-nums text-primary">
-                {formatEuro(angebot.konditionen.monatsrate)}
-                <span className="text-sm font-normal text-muted-foreground">/Mo.</span>
-              </p>
+              <p className="text-xs text-muted-foreground">Leasingrate · {kmAuswahl / 1000} Tkm/J</p>
+              {rate !== undefined ? (
+                <p className="text-2xl font-bold tabular-nums text-primary">
+                  {formatEuro(rate)}
+                  <span className="text-sm font-normal text-muted-foreground">/Mo.</span>
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">Keine Rate verfügbar</p>
+              )}
             </div>
-            {ergebnis && (
+            {ergebnis && rate !== undefined && (
               <div className="text-right">
                 <p className="text-xs text-muted-foreground">inkl. Betrieb</p>
                 <p className="text-sm tabular-nums text-muted-foreground">
@@ -291,6 +301,7 @@ function AngebotTabelle({
 
 export default function AngebotListePage() {
   const { data, geladen, aktiveBaseline } = useAppData();
+  const { kmAuswahl, setKm } = useKmAuswahl();
 
   const [ansicht, setAnsicht] = useState<"karten" | "tabelle">("karten");
   const [suche, setSuche] = useState("");
@@ -488,25 +499,28 @@ export default function AngebotListePage() {
             </Select>
           </div>
 
-          <div className="ml-auto flex items-center gap-1">
-            <Button
-              variant={ansicht === "karten" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => setAnsicht("karten")}
-              title="Kartenansicht"
-            >
-              <LayoutGrid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={ansicht === "tabelle" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => setAnsicht("tabelle")}
-              title="Tabellenansicht"
-            >
-              <List className="h-4 w-4" />
-            </Button>
+          <div className="ml-auto flex items-center gap-3">
+            <KmAuswahlToggle kmAuswahl={kmAuswahl} setKm={setKm} />
+            <div className="flex items-center gap-1">
+              <Button
+                variant={ansicht === "karten" ? "secondary" : "ghost"}
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setAnsicht("karten")}
+                title="Kartenansicht"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={ansicht === "tabelle" ? "secondary" : "ghost"}
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => setAnsicht("tabelle")}
+                title="Tabellenansicht"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -565,6 +579,7 @@ export default function AngebotListePage() {
               angebot={a}
               ergebnis={ergebnisse.find((e) => e.angebotId === a.id)}
               baseline={baseline}
+              kmAuswahl={kmAuswahl}
             />
           ))}
         </div>

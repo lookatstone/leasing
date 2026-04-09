@@ -85,6 +85,10 @@ interface FormState {
   gapEnthalten: Angebot["konditionen"]["gapEnthalten"];
   verfuegbarkeit: Angebot["konditionen"]["verfuegbarkeit"];
   spezielleBedingungen: string;
+  // Km-Staffelpreise
+  kmStaffel20000: string;
+  kmStaffel25000: string;
+  kmStaffel30000: string;
   // Betriebskosten
   versicherungProJahr: string;
   versicherungsannahmeText: string;
@@ -144,6 +148,16 @@ function angebotZuFormState(a: Angebot): FormState {
     gapEnthalten: a.konditionen.gapEnthalten,
     verfuegbarkeit: a.konditionen.verfuegbarkeit,
     spezielleBedingungen: a.konditionen.spezielleBedingungen ?? "",
+
+    kmStaffel20000: String(
+      a.konditionen.kmStaffelRaten?.find((s) => s.kmProJahr === 20000)?.monatsrate ?? ""
+    ).replace("undefined", ""),
+    kmStaffel25000: String(
+      a.konditionen.kmStaffelRaten?.find((s) => s.kmProJahr === 25000)?.monatsrate ?? ""
+    ).replace("undefined", ""),
+    kmStaffel30000: String(
+      a.konditionen.kmStaffelRaten?.find((s) => s.kmProJahr === 30000)?.monatsrate ?? ""
+    ).replace("undefined", ""),
 
     versicherungProJahr:
       a.laufendeKosten.versicherungProJahr !== undefined
@@ -221,6 +235,14 @@ function formStateZuAngebot(f: FormState, basis: Angebot): Angebot {
       gapEnthalten: f.gapEnthalten,
       verfuegbarkeit: f.verfuegbarkeit,
       spezielleBedingungen: f.spezielleBedingungen.trim() || undefined,
+      kmStaffelRaten: (() => {
+        const staffel = [
+          f.kmStaffel20000 ? { kmProJahr: 20000, monatsrate: zahlOder0(f.kmStaffel20000) } : null,
+          f.kmStaffel25000 ? { kmProJahr: 25000, monatsrate: zahlOder0(f.kmStaffel25000) } : null,
+          f.kmStaffel30000 ? { kmProJahr: 30000, monatsrate: zahlOder0(f.kmStaffel30000) } : null,
+        ].filter((s): s is { kmProJahr: number; monatsrate: number } => s !== null && s.monatsrate > 0);
+        return staffel.length > 0 ? staffel : undefined;
+      })(),
     },
     laufendeKosten: {
       versicherungProJahr: f.versicherungProJahr
@@ -876,6 +898,49 @@ export function AngebotFormular({
           />
         </Feld>
       </section>
+
+      {/* ── Km-Staffelpreise ──────────────────────────────────────────────── */}
+      <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
+        <div>
+          <p className="text-sm font-medium">Km-Staffelpreise (optional)</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Falls der Anbieter Raten für verschiedene Kilometergrenzen angibt, trage sie hier ein.
+            Nicht verfügbare Stufen einfach leer lassen.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Feld label="Rate bei 20.000 km/Jahr (€)">
+            <Input
+              type="number"
+              min={0}
+              step={1}
+              value={form.kmStaffel20000}
+              onChange={(e) => set("kmStaffel20000", e.target.value)}
+              placeholder="z. B. 349"
+            />
+          </Feld>
+          <Feld label="Rate bei 25.000 km/Jahr (€)">
+            <Input
+              type="number"
+              min={0}
+              step={1}
+              value={form.kmStaffel25000}
+              onChange={(e) => set("kmStaffel25000", e.target.value)}
+              placeholder="z. B. 389"
+            />
+          </Feld>
+          <Feld label="Rate bei 30.000 km/Jahr (€)" hinweis="Leer lassen wenn nicht verfügbar">
+            <Input
+              type="number"
+              min={0}
+              step={1}
+              value={form.kmStaffel30000}
+              onChange={(e) => set("kmStaffel30000", e.target.value)}
+              placeholder="z. B. 429"
+            />
+          </Feld>
+        </div>
+      </div>
 
       <Separator />
 

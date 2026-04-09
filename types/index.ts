@@ -57,6 +57,7 @@ export interface Leasingkonditionen {
   ueberfuehrungskosten: number;
   zulassungskosten: number;
   einmaligeGesamtkostenManuell?: number; // überschreibt Berechnung wenn gesetzt
+  kmStaffelRaten?: Array<{ kmProJahr: number; monatsrate: number }>; // Raten für andere km-Stufen
   foerderungVomAnbieterEinkalkuliert: FoerderungStatus;
   foerderungHoeheEuro?: number;
   gapEnthalten: GapStatus;
