@@ -35,6 +35,7 @@ export interface Fahrzeugdaten {
   marke: string;
   modell: string;
   variante?: string;
+  fotoUrl?: string; // URL oder base64 data-URL
   neuOderGebraucht: FahrzeugZustand;
   erstzulassung?: string; // ISO-Date-String
   kilometerstand?: number;

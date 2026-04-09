@@ -299,6 +299,17 @@ export default function AngebotDetailPage() {
         </div>
       </div>
 
+      {/* ── Fahrzeugfoto ──────────────────────────────────────────────────── */}
+      {angebot.fahrzeug.fotoUrl && (
+        <div className="overflow-hidden rounded-xl border">
+          <img
+            src={angebot.fahrzeug.fotoUrl}
+            alt={angebot.titel}
+            className="h-64 w-full object-cover sm:h-80"
+          />
+        </div>
+      )}
+
       {/* ── Bewertungsleiste ──────────────────────────────────────────────── */}
       {ergebnis && (
         <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-card p-4">
