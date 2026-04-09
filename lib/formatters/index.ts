@@ -120,6 +120,7 @@ export function labelAngebotStatus(status: AngebotStatus): string {
     aktiv: "Aktiv",
     verworfen: "Verworfen",
     archiviert: "Archiviert",
+    nicht_verfuegbar: "Nicht verfügbar",
   };
   return map[status] ?? status;
 }
