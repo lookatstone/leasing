@@ -54,6 +54,11 @@ export const SEED_DATA: AppData = {
         sonderzahlung: 0,
         ueberfuehrungskosten: 790,
         zulassungskosten: 120,
+        kmStaffelRaten: [
+          { kmProJahr: 20000, monatsrate: 349 },
+          { kmProJahr: 25000, monatsrate: 389 },
+          { kmProJahr: 30000, monatsrate: 429 },
+        ],
         foerderungVomAnbieterEinkalkuliert: "unklar",
         foerderungHoeheEuro: undefined,
         gapEnthalten: "unklar",
@@ -103,6 +108,11 @@ export const SEED_DATA: AppData = {
         sonderzahlung: 0,
         ueberfuehrungskosten: 699,
         zulassungskosten: 120,
+        kmStaffelRaten: [
+          { kmProJahr: 20000, monatsrate: 289 },
+          { kmProJahr: 25000, monatsrate: 319 },
+          // 30.000 km nicht verfügbar bei diesem Anbieter
+        ],
         foerderungVomAnbieterEinkalkuliert: "eingerechnet",
         foerderungHoeheEuro: 3000,
         gapEnthalten: "nicht_enthalten",
@@ -152,6 +162,11 @@ export const SEED_DATA: AppData = {
         sonderzahlung: 0,
         ueberfuehrungskosten: 890,
         zulassungskosten: 120,
+        kmStaffelRaten: [
+          { kmProJahr: 20000, monatsrate: 319 },
+          { kmProJahr: 25000, monatsrate: 349 },
+          { kmProJahr: 30000, monatsrate: 389 },
+        ],
         foerderungVomAnbieterEinkalkuliert: "nicht_eingerechnet",
         foerderungHoeheEuro: undefined,
         gapEnthalten: "unklar",

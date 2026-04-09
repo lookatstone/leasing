@@ -18,12 +18,16 @@ import { FitBadge } from "@/components/FitBadge";
 import { BatterieBadge } from "@/components/BatterieBadge";
 import { WarnListe } from "@/components/WarnBadge";
 import { useAppData } from "@/hooks/useAppData";
+import { useKmAuswahl, getRateForKm } from "@/hooks/useKmAuswahl";
+import { KmAuswahlToggle } from "@/components/KmAuswahlToggle";
 import { berechneAlleVergleichsergebnisse, berechneVergleichsergebnis } from "@/lib/calculations";
 import { formatEuro, formatDatumZeit, formatDatum } from "@/lib/formatters";
 import type { Angebot, BaselineProfil, Vergleichsergebnis } from "@/types";
+import type { KmTier } from "@/hooks/useKmAuswahl";
 
 export default function DashboardPage() {
   const { data, geladen, aktiveBaseline } = useAppData();
+  const { kmAuswahl, setKm } = useKmAuswahl();
 
   if (!geladen || !data) {
     return (
@@ -75,12 +79,15 @@ export default function DashboardPage() {
             {" · "}mind. {baseline?.mindestBatterieKwh} kWh
           </p>
         </div>
-        <Button asChild>
-          <Link href="/angebote/neu">
-            <Plus className="h-4 w-4" />
-            Angebot erfassen
-          </Link>
-        </Button>
+        <div className="flex items-center gap-3">
+          <KmAuswahlToggle kmAuswahl={kmAuswahl} setKm={setKm} />
+          <Button asChild>
+            <Link href="/angebote/neu">
+              <Plus className="h-4 w-4" />
+              Angebot erfassen
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -107,11 +114,23 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-emerald-700">
-                      {formatEuro(guenstigstes.konditionen.monatsrate)}
-                      <span className="text-sm font-normal text-muted-foreground">/Monat</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">Leasingrate</p>
+                    {(() => {
+                      const rate = getRateForKm(guenstigstes, kmAuswahl);
+                      return rate !== undefined ? (
+                        <>
+                          <p className="text-2xl font-bold text-emerald-700">
+                            {formatEuro(rate)}
+                            <span className="text-sm font-normal text-muted-foreground">/Monat</span>
+                          </p>
+                          <p className="text-xs text-muted-foreground">{kmAuswahl / 1000} Tkm/Jahr</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-base font-medium text-muted-foreground">–</p>
+                          <p className="text-xs text-muted-foreground">Keine Rate für {kmAuswahl / 1000} Tkm</p>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -137,7 +156,7 @@ export default function DashboardPage() {
             <div className="space-y-2">
               {favoriten.map((a) => {
                 const e = ergebnisse.find((r) => r.angebotId === a.id);
-                return <AngebotZeile key={a.id} angebot={a} ergebnis={e} baseline={baseline} />;
+                return <AngebotZeile key={a.id} angebot={a} ergebnis={e} baseline={baseline} kmAuswahl={kmAuswahl} />;
               })}
             </div>
           </div>
@@ -223,9 +242,10 @@ function StatCard({ icon, label, wert, sub, href, warn = false }: {
   );
 }
 
-function AngebotZeile({ angebot, ergebnis, baseline }: {
-  angebot: Angebot; ergebnis?: Vergleichsergebnis; baseline?: BaselineProfil;
+function AngebotZeile({ angebot, ergebnis, baseline, kmAuswahl }: {
+  angebot: Angebot; ergebnis?: Vergleichsergebnis; baseline?: BaselineProfil; kmAuswahl: KmTier;
 }) {
+  const rate = getRateForKm(angebot, kmAuswahl);
   return (
     <Link href={`/angebote/${angebot.id}`}>
       <div className="flex items-center justify-between rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50 cursor-pointer">
@@ -237,9 +257,11 @@ function AngebotZeile({ angebot, ergebnis, baseline }: {
           </div>
         </div>
         <div className="text-right">
-          <p className="text-sm font-semibold">
-            {formatEuro(angebot.konditionen.monatsrate)}/Mo.
-          </p>
+          {rate !== undefined ? (
+            <p className="text-sm font-semibold">{formatEuro(rate)}/Mo.</p>
+          ) : (
+            <p className="text-sm text-muted-foreground">–</p>
+          )}
           {ergebnis && <FitBadge bewertung={ergebnis.bewertung.gesamtbewertung} size="sm" />}
         </div>
       </div>
